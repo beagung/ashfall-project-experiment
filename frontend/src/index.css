@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    /* Membuat scroll bawaan browser menjadi halus */
+    scroll-behavior: smooth;
+  }
+}
+
+/* Custom durasi untuk scroll (beberapa browser mendukung ini) */
+:root {
+  --scroll-behavior: smooth;
+}
