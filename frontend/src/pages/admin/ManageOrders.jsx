@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import AdminLayout from "../../components/admin/AdminLayout";
 
-// Icons
+// Icons (MUI)
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
@@ -14,6 +14,7 @@ const ManageOrders = () => {
 
   const API_URL = "http://localhost:5000/api/orders";
 
+  // 1. Fetch Data: Mengambil seluruh daftar pesanan dari backend
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -30,17 +31,18 @@ const ManageOrders = () => {
     fetchData();
   }, [fetchData]);
 
+  // 2. Update Status: Mengubah status pesanan (misal: dari pending ke shipping)
   const handleUpdateStatus = async (e, id_order, newStatus) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Mencegah trigger navigasi saat dropdown diklik
     try {
       await axios.put(`${API_URL}/admin/update/${id_order}`, { status: newStatus });
-      fetchData();
+      fetchData(); // Refresh list agar perubahan status terlihat
     } catch (err) {
-      console.error("UPDATE_ERROR:", err.response?.data || err.message);
       alert("Gagal mengupdate status.");
     }
   };
 
+  // 3. Delete Order: Menghapus record pesanan spesifik
   const handleDelete = async (e, id_order, orderIdDisplay) => {
     e.stopPropagation();
     if (window.confirm(`Yakin ingin menghapus order: ${orderIdDisplay}?`)) {
@@ -48,74 +50,60 @@ const ManageOrders = () => {
         await axios.delete(`${API_URL}/admin/delete/${id_order}`);
         fetchData();
       } catch (err) {
-        console.error("DELETE_ERROR:", err.response?.data || err.message);
         alert("Gagal menghapus order.");
       }
     }
   };
 
+  // Helper untuk styling status pesanan
   const getStatusStyle = (status) => {
-    switch (status) {
-      case "settlement":
-      case "paid":
-        return "bg-blue-500 text-white border-black";
-      case "shipping":
-        return "bg-green-500 text-white border-black";
-      case "pending":
-        return "bg-yellow-400 text-black border-black";
-      case "cancel":
-        return "bg-red-500 text-white border-black";
-      default:
-        return "bg-zinc-200 text-black border-black";
-    }
+    const styles = {
+      paid: "bg-blue-500 text-white",
+      shipping: "bg-green-500 text-white",
+      pending: "bg-yellow-400 text-black",
+      cancel: "bg-red-500 text-white",
+    };
+    return styles[status] || "bg-zinc-200";
   };
 
   return (
     <AdminLayout>
-      <div className="space-y-8 animate-in fade-in duration-500 uppercase">
+      <div className="space-y-8 uppercase">
+        {/* Header Section */}
         <div className="flex justify-between items-center">
           <h2 className="text-4xl font-black italic">ORDER_MANAGEMENT</h2>
-          <button onClick={fetchData} className="bg-black text-white px-6 py-4 flex gap-3 border-2 border-black hover:bg-[#f97316] transition-all">
+          <button onClick={fetchData} className="bg-black text-white px-6 py-4 flex gap-3 border-2 border-black hover:bg-[#f97316]">
             <RefreshIcon className={loading ? "animate-spin" : ""} />
             <span className="font-black text-xs tracking-widest">REFRESH</span>
           </button>
         </div>
 
+        {/* Tabel Data Pesanan */}
         <div className="bg-white border-2 border-black shadow-[8px_8px_0px_#000] overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-black text-white text-[10px] tracking-[.3em] font-black">
                 <th className="p-5">ORDER_ID</th>
                 <th className="p-5">CUSTOMER</th>
-                <th className="p-5">CONTACT</th>
-                <th className="p-5">SHIPPING_ADDRESS</th>
-                <th className="p-5 text-center">STATUS_CONTROL</th>
+                <th className="p-5">STATUS_CONTROL</th>
                 <th className="p-5 text-center">OP</th>
               </tr>
             </thead>
             <tbody className="text-[11px] font-bold">
               {orders.map((item) => (
                 <tr key={item.id_order} onClick={() => navigate(`/admin/detail-orders/${item.id_order}`)} className="border-b-2 border-zinc-100 hover:bg-zinc-50 cursor-pointer">
-                  <td className="p-5 font-mono">#{item.order_id?.split("-")[1] || item.order_id}</td>
+                  <td className="p-5 font-mono">#{item.order_id?.split("-")[1]}</td>
                   <td className="p-5">{item.customer_name}</td>
-                  <td className="p-5">{item.phone || "-"}</td>
-                  <td className="p-5 max-w-[200px]">
-                    <p className="truncate">{item.address}</p>
-                    <p className="text-[9px] text-zinc-500">
-                      {item.city}, {item.district}, {item.province}
-                    </p>
-                  </td>
-                  <td className="p-5 text-center" onClick={(e) => e.stopPropagation()}>
-                    <select value={item.status} onChange={(e) => handleUpdateStatus(e, item.id_order, e.target.value)} className={`p-2 border-2 font-black text-[9px] cursor-pointer ${getStatusStyle(item.status)}`}>
+                  <td className="p-5" onClick={(e) => e.stopPropagation()}>
+                    <select value={item.status} onChange={(e) => handleUpdateStatus(e, item.id_order, e.target.value)} className={`p-2 border-2 ${getStatusStyle(item.status)}`}>
                       <option value="pending">WAITING_PAYMENT</option>
                       <option value="paid">PAYMENT_RECEIVED</option>
-                      <option value="settlement">ORDER_VERIFIED</option>
                       <option value="shipping">ON_THE_WAY</option>
-                      <option value="cancel">ORDER_CANCELLED</option>
+                      <option value="cancel">CANCELLED</option>
                     </select>
                   </td>
                   <td className="p-5 text-center">
-                    <button onClick={(e) => handleDelete(e, item.id_order, item.order_id)} className="p-2 border-2 border-black bg-white hover:bg-red-600 hover:text-white transition-all">
+                    <button onClick={(e) => handleDelete(e, item.id_order, item.order_id)} className="p-2 border-2 border-black hover:bg-red-600">
                       <DeleteOutlineIcon sx={{ fontSize: 18 }} />
                     </button>
                   </td>

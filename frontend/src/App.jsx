@@ -6,8 +6,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 
 // Import auth
-import LoginAdmin from "./auth/LoginAdmin";
-import LoginCustomer from "./auth/LoginCustomer";
+import LoginAdmin from "./auth/loginAdmin";
+import LoginCustomer from "./auth/loginCustomer";
 import RegisterCustomer from "./auth/RegisterCustomer";
 
 // Import pages (User)
