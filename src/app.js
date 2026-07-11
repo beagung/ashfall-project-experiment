@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
-const multer = require("multer"); // Perlu diimpor untuk menangkap error Multer
+const multer = require("multer");
+
+// PATH DIUBAH: Menggunakan ./ karena routes berada dalam satu folder src/ dengan app.js
 const authRoutes = require("./routes/authRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const productRoutes = require("./routes/productRoutes");
@@ -37,12 +39,10 @@ app.get("/", (req, res) => res.send("ASHFALL_CORE_API_ACTIVE"));
 
 /**
  * Global Error Handler
- * Menangani error dari Multer (file upload) dan error server lainnya
  */
 app.use((err, req, res, next) => {
   console.error("❌ GLOBAL_ERROR_HANDLER:", err.stack);
 
-  // Penanganan spesifik untuk error Multer (Upload File)
   if (err instanceof multer.MulterError) {
     return res.status(400).json({
       success: false,
@@ -50,7 +50,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Penanganan error validasi file (misal: invalid file type)
   if (err.message && err.message.includes("INVALID_FILE_TYPE")) {
     return res.status(400).json({
       success: false,
@@ -58,7 +57,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Penanganan error umum
   res.status(500).json({
     success: false,
     message: err.message || "INTERNAL_SERVER_ERROR",
